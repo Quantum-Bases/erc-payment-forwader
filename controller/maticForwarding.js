@@ -1,24 +1,36 @@
 const utils = require('../utils/wallet');
 const config = require('../config');
+const prisma = require('../connection')
+
 
 async function forwardPayments(req, res) {
     try {
         const { amount, recpient, currency } = req.body;
+        const userAccount = await prisma.user.findUnique({
+            where: {
+              email: 'elsa@prisma.io',
+            },
+          })
+          if(!account){
+            return res.status(400).send("No wallet found!");
+          }
+
         const admin_private_key = process.env.ADMIN_WALLET_KEY;
         const usdt_contract_address = config.USDT_TOKEN_ADDRESS.polygon;
-        const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
+        // const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
+        const user_private_key = userAccount.privateKey; // THIS WILL BE FETCHING FROM DB
 
         const admin_address = await utils.privateKeyToAddress(admin_private_key);
-        const user_address = await utils.privateKeyToAddress(user_private_key);
+        const user_address = userAccount.publicKey;
 
-        if (!utils.isValidEthereumAddress(recpient)) return res.status(401).send("invalid recipient address");
+        if (!utils.isValidEthereumAddress(user_address)) return res.status(401).send("invalid recipient address");
 
-        const usdtBalanceOfUser = await utils.getUsdtBalanceMatic(recpient);
+        const usdtBalanceOfUser = await utils.getUsdtBalanceMatic(user_address);
         const maticBalanceOfAdmin = await utils.getEtherBalance(admin_address.address, global.web3Matic);
-        const maticBalanceOfUser = await utils.getEtherBalance(recpient,  global.web3Matic);
+        const maticBalanceOfUser = await utils.getEtherBalance(recpuser_addressient,  global.web3Matic);
 
         const adminWalletNonce = await utils.getNounce(admin_address.address,  global.web3Matic);
-        const userWalletNonce = await utils.getNounce(recpient,  global.web3Matic);
+        const userWalletNonce = await utils.getNounce(user_address,  global.web3Matic);
 
         const gasPrice = await global.web3Matic.eth.getGasPrice();
         const gasLimit = 30000;

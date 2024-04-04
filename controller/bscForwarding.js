@@ -7,10 +7,10 @@ async function forwardPayments(req, res) {
         const { amount, recpient, currency } = req.body;
         const userAccount = await prisma.user.findUnique({
             where: {
-              email: 'elsa@prisma.io',
+              publicKey: recpient,
             },
           })
-          if(!account){
+          if(!userAccount){
             return res.status(400).send("No wallet found!");
           }
 
@@ -20,16 +20,17 @@ async function forwardPayments(req, res) {
         const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
 
         const admin_address = await utils.privateKeyToAddress(admin_private_key);
-        const user_address = await utils.privateKeyToAddress(user_private_key);
+        // const user_address = await utils.privateKeyToAddress(user_private_key);
+        const user_address = userAccount.publicKey;
 
-        if (!utils.isValidEthereumAddress(recpient)) return res.status(401).send("invalid recipient address");
+        if (!utils.isValidEthereumAddress(user_address)) return res.status(401).send("invalid recipient address");
 
-        const usdtBalanceOfUser = await utils.getUsdtBalanceBsc(recpient);
+        const usdtBalanceOfUser = await utils.getUsdtBalanceBsc(user_address);
         const bscBalanceOfAdmin = await utils.getEtherBalance(admin_address.address, global.web3Bsc);
-        const bscBalanceOfUser = await utils.getEtherBalance(recpient, global.web3Bsc);
+        const bscBalanceOfUser = await utils.getEtherBalance(user_address, global.web3Bsc);
 
         const adminWalletNonce = await utils.getNounce(admin_address.address, global.web3Bsc);
-        const userWalletNonce = await utils.getNounce(recpient, global.web3Bsc);
+        const userWalletNonce = await utils.getNounce(user_address, global.web3Bsc);
 
         const gasPrice = await global.web3Bsc.eth.getGasPrice();
         const gasLimit = 30000;
