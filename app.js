@@ -11,6 +11,9 @@ const log = require('./utils/log');
 
 const { newWeb3ConnectionBsc, newWeb3ConnectionMatic } = require('./connection');
 
+const maticCron = require("./services/maticCron")
+const bscCron = require("./services/bscCron")
+
 
 const app = express();
 
@@ -41,6 +44,9 @@ newWeb3ConnectionMatic(process.env.RPC_URI_MATIC).then(() => {
 }).catch(e => {
     log(`Error connection to MATIC WEB3  blockchain: ${e.message}`, 'red');
 });
+
+setInterval(maticCron, 6500);
+setInterval(bscCron, 9600);
 
 app.use('/v1/wallet', router);
 

@@ -18,19 +18,22 @@ model User{
   id Int @id @default(autoincrement())
 }
 model UserWallet{
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   name String
   email String
   publickey String
-  privateKey String
+  privateKey String 
 
   createTime DateTime @default(now())
   updateTime DateTime @updatedAt
+
+  @@unique([publickey, privateKey])
 }
 
 model Trnasections{
-  id Int @id @default(autoincrement())
-  amount Int
+  id String @id @default(uuid())
+  userId String
+  amount String
   recpient String
   currency String
   status String
