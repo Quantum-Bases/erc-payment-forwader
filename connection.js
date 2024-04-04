@@ -1,5 +1,9 @@
 const Web3 = require("web3");
+const { PrismaClient } =  require("@prisma/client");
+
 const web3 = new Web3();
+const prisma = new PrismaClient()
+
 
 const newWeb3ConnectionBsc = async (WS_URI) => {
     return new Promise(async (resolve, reject) => {
@@ -43,5 +47,6 @@ module.exports = {
     newWeb3ConnectionBsc,
     newWeb3ConnectionMatic,
     getWeb3ConnectionMatic,
-    getWeb3ConnectionBsc
+    getWeb3ConnectionBsc,
+    prisma
 }

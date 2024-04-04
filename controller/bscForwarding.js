@@ -1,11 +1,22 @@
 const utils = require('../utils/wallet');
 const config = require('../config');
+const prisma = require('../connection')
 
 async function forwardPayments(req, res) {
     try {
         const { amount, recpient, currency } = req.body;
+        const userAccount = await prisma.user.findUnique({
+            where: {
+              email: 'elsa@prisma.io',
+            },
+          })
+          if(!account){
+            return res.status(400).send("No wallet found!");
+          }
+
         const admin_private_key = process.env.ADMIN_WALLET_KEY;
         const usdt_contract_address = config.USDT_TOKEN_ADDRESS.bsc;
+        // const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
         const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
 
         const admin_address = await utils.privateKeyToAddress(admin_private_key);
