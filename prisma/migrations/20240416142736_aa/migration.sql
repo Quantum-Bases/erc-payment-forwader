@@ -26,6 +26,7 @@ CREATE TABLE "Trnasections" (
     "recpient" TEXT NOT NULL,
     "currency" TEXT NOT NULL,
     "status" TEXT NOT NULL,
+    "txHash" TEXT,
     "createTime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateTime" TIMESTAMP(3) NOT NULL,
 
@@ -34,3 +35,6 @@ CREATE TABLE "Trnasections" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "UserWallet_publickey_privateKey_key" ON "UserWallet"("publickey", "privateKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Trnasections_txHash_key" ON "Trnasections"("txHash");

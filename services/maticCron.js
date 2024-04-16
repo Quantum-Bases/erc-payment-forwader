@@ -1,13 +1,14 @@
 const { prisma } = require("../connection");
-const utils = require('../utils/wallet');
-const config = require('../config');
+const utils = require("../utils/wallet");
+const config = require("../config");
 
-
-async function maticCron(req, res) {
+async function maticCron() {
   const txs = await prisma.trnasections.findMany({
     where: {
       status: "PENDING",
-      currency: "MATIC"
+      currency: "MATIC",
+      txHash: null,
+
     },
   });
   if (!txs) {
@@ -41,7 +42,9 @@ async function maticCron(req, res) {
         global.web3Matic
       );
 
-      const usdtBalanceOfUser = await utils.getUsdtBalanceMatic(userAccount.publickey);
+      const usdtBalanceOfUser = await utils.getUsdtBalanceMatic(
+        userAccount.publickey
+      );
       const maticBalanceOfAdmin = await utils.getEtherBalance(
         admin_address.address,
         global.web3Matic
@@ -61,7 +64,8 @@ async function maticCron(req, res) {
 
       if (currency.toUpperCase() == "MATIC") {
         userToAdminMaticTransfer(
-            userAccount.publickey,
+          tx.id,
+          userAccount.publickey,
           admin_address.address,
           tx.amount,
           userWalletNonce,
@@ -102,8 +106,7 @@ async function maticCron(req, res) {
 
   await Promise.all(listenerPromises);
 
-  
-  console.log('MATIC event subscribed!');
+  console.log("MATIC event subscribed!");
 }
 
 async function adminToUserMicroMaticTransfer(
@@ -200,6 +203,7 @@ async function userToAdminUsdtTransfer(
 }
 
 async function userToAdminMaticTransfer(
+  txId,
   userAddress,
   adminAddress,
   amount,
@@ -236,6 +240,15 @@ async function userToAdminMaticTransfer(
       privateKey,
       global.web3Matic
     );
+
+    await prisma.trnasections.update({
+      where: {
+        id: txId,
+      },
+      data: {
+        txHash: minedTxStatus,
+      },
+    });
 
     console.log(
       "User ether has been transfer to admin wallet: ",

@@ -85,12 +85,20 @@ const pushTransaction = async (transactionObject, privateKey, network) => {
     try {
         const txnHash = await new Promise(async (resolve, reject) => {
             network.eth.accounts.signTransaction(transactionObject, privateKey).then(signedTx => {
+                console.log("signedTx",signedTx);
                 network.eth.sendSignedTransaction(signedTx.rawTransaction, async function (err, hash) {
+                    // console.log("hash", hash);
+                    // console.log("err", err);
                     if (!err) {
-                        const reciept = await waitForTx(hash, network);
-                        resolve(reciept)
+                        console.log("  ! pushTransaction", hash);
+                        // return hash;
+                        
+                        // const reciept = await waitForTx(hash, network);
+                        // console.log("reciept",reciept);
+                        resolve(hash)
                     } else {
-                        return `Bad Request ${err.message}`
+                        // console.log("pushTransaction", err);
+                        return `Bad Request ${err}`
                     }
                 });
             });
@@ -104,7 +112,8 @@ async function waitForTx(tx_hash, network) {
 
     // This is not really efficient but nodejs cannot pause the running process
     while (result === null) {
-        result = await network.eth.getTransactionReceipt(tx_hash);
+        result = await network.eth.getTransaction(tx_hash);
+        console.log("result",result);
     }
     return result
 }

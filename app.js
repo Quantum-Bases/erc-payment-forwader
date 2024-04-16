@@ -9,10 +9,12 @@ const morgan = require("morgan");
 
 const log = require('./utils/log');
 
-const { newWeb3ConnectionBsc, newWeb3ConnectionMatic } = require('./connection');
+// const { newWeb3ConnectionBsc, newWeb3ConnectionMatic } = require('./connection');
+const { newWeb3ConnectionMatic } = require('./connection');
 
 const maticCron = require("./services/maticCron")
 const bscCron = require("./services/bscCron")
+const waitTx = require("./services/waitTx")
 
 
 const app = express();
@@ -33,11 +35,11 @@ app.use(morgan(function (tokens, req, res) {
 }));
 
 
-newWeb3ConnectionBsc(process.env.RPC_URI_BSC).then(() => {
-    log('Connected to BSC WEB3 Blockchain!', 'green');
-}).catch(e => {
-    log(`Error connection to BSC WEB3  blockchain: ${e.message}`, 'red');
-});
+// newWeb3ConnectionBsc(process.env.RPC_URI_BSC).then(() => {
+//     log('Connected to BSC WEB3 Blockchain!', 'green');
+// }).catch(e => {
+//     log(`Error connection to BSC WEB3  blockchain: ${e.message}`, 'red');
+// });
 
 newWeb3ConnectionMatic(process.env.RPC_URI_MATIC).then(() => {
     log('Connected to MATIC WEB3 Blockchain!', 'green');
@@ -45,9 +47,11 @@ newWeb3ConnectionMatic(process.env.RPC_URI_MATIC).then(() => {
     log(`Error connection to MATIC WEB3  blockchain: ${e.message}`, 'red');
 });
 
-setInterval(maticCron, 6500);
-setInterval(bscCron, 9600);
+// setInterval(maticCron, 6500);
+// setInterval(bscCron, 9600);
 
+bscCron()
+// waitTx()
 app.use('/v1/wallet', router);
 
 const PORT = process.env.PORT;

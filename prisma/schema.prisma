@@ -37,6 +37,7 @@ model Trnasections{
   recpient String
   currency String
   status String
+  txHash String? @unique
 
   createTime DateTime @default(now())
   updateTime DateTime @updatedAt

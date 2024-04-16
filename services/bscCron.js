@@ -1,14 +1,23 @@
 const { prisma } = require("../connection");
 const utils = require("../utils/wallet");
 const config = require("../config");
+const Web3 = require("web3");
+var url = "https://data-seed-prebsc-1-s1.bnbchain.org:8545";
 
-async function bscCron(req, res) {
+var web3 = new Web3(url);
+
+global.web3Bsc = web3;
+
+async function bscCron() {
   const txs = await prisma.trnasections.findMany({
     where: {
       status: "PENDING",
       currency: "BSC",
+      txHash: null,
     },
   });
+  // console.log(txs);
+  // return
   if (!txs) {
     console.log("No pending trnasection found!");
     return;
@@ -16,7 +25,7 @@ async function bscCron(req, res) {
 
   const listenerPromises = txs.map(async (tx) => {
     try {
-      const admin_private_key = process.env.ADMIN_WALLET_KEY;
+      const admin_private_key = process.env.ADMIN_BSC_WALLET_KEY;
       const usdt_contract_address = config.USDT_TOKEN_ADDRESS.bsc;
       // const user_private_key = process.env.USER_WALLET_KEY // THIS WILL BE FETCHING FROM DB
 
@@ -35,13 +44,15 @@ async function bscCron(req, res) {
 
       const admin_address = await utils.privateKeyToAddress(admin_private_key);
 
-      const usdtBalanceOfUser = await utils.getUsdtBalanceBsc(user_address);
+      const usdtBalanceOfUser = await utils.getUsdtBalanceBsc(
+        userAccount.publickey
+      );
       const bscBalanceOfAdmin = await utils.getEtherBalance(
         admin_address.address,
         global.web3Bsc
       );
       const bscBalanceOfUser = await utils.getEtherBalance(
-        admin_address.address,
+        userAccount.publickey,
         global.web3Bsc
       );
 
@@ -50,15 +61,24 @@ async function bscCron(req, res) {
         global.web3Bsc
       );
       const userWalletNonce = await utils.getNounce(
-        admin_address.address,
+        userAccount.publickey,
         global.web3Bsc
       );
 
+      // console.log({
+      //   usdtBalanceOfUser:usdtBalanceOfUser,
+      //   bscBalanceOfAdmin:bscBalanceOfAdmin,
+      //   bscBalanceOfUser:bscBalanceOfUser,
+      //   adminWalletNonce:adminWalletNonce,
+      //   userWalletNonce:userWalletNonce
+      // });
       const gasPrice = await global.web3Bsc.eth.getGasPrice();
+      // console.log(gasPrice);
       const gasLimit = 30000;
 
-      if (currency.toUpperCase() == "BSC") {
+      if (tx.currency.toUpperCase() == "BSC") {
         userToAdminBscTransfer(
+          tx.id,
           userAccount.publickey,
           admin_address.address,
           tx.amount,
@@ -67,8 +87,9 @@ async function bscCron(req, res) {
           gasLimit,
           user_private_key
         );
-      } else if (currency.toUpperCase() == "USDT") {
+      } else if (tx.currency.toUpperCase() == "USDT") {
         const txReciept = await adminToUserMicroBscTransfer(
+          tx.id,
           admin_address.address,
           userAccount.publickey,
           adminWalletNonce,
@@ -81,6 +102,7 @@ async function bscCron(req, res) {
 
         if (txReciept.status === true) {
           userToAdminUsdtTransfer(
+            tx.id,
             userAccount.publickey,
             admin_address.address,
             userWalletNonce,
@@ -100,10 +122,11 @@ async function bscCron(req, res) {
 
   await Promise.all(listenerPromises);
 
-  console.log("MATIC event subscribed!");
+  console.log("BSC event subscribed!");
 }
 
 async function adminToUserMicroBscTransfer(
+  txId,
   adminAddress,
   userAddress,
   adminWalletNonce,
@@ -145,6 +168,7 @@ async function adminToUserMicroBscTransfer(
 }
 
 async function userToAdminUsdtTransfer(
+  txId,
   userAddress,
   adminAddress,
   userWalletNonce,
@@ -189,6 +213,8 @@ async function userToAdminUsdtTransfer(
       global.web3Bsc
     );
 
+
+
     console.log(
       "Users usdt has been transfer to admin wallet: ",
       minedTxStatus
@@ -197,6 +223,7 @@ async function userToAdminUsdtTransfer(
 }
 
 async function userToAdminBscTransfer(
+  txId,
   userAddress,
   adminAddress,
   amount,
@@ -214,9 +241,14 @@ async function userToAdminBscTransfer(
     global.web3Bsc
   );
 
-  const gasValue = estimatedGas * gasPrice;
+  // const gasValue = estimatedGas * gasPrice;
+  const gasValue = "21000" * gasPrice;
 
-  const amountToSend = parseInt(amount) - parseInt(gasValue);
+  const am = web3.utils.toWei(amount);
+  // console.log(am);
+  const amountToSend = parseInt(am) - parseInt(gasValue);
+
+  // console.log(amountToSend);
 
   if (amountToSend > 0) {
     const txObject = await transactionObject(
@@ -228,11 +260,22 @@ async function userToAdminBscTransfer(
       amountToSend,
       adminAddress
     );
+
+
     const minedTxStatus = await utils.pushTransaction(
       txObject,
       privateKey,
       global.web3Bsc
     );
+
+    await prisma.trnasections.update({
+      where: {
+        id: txId,
+      },
+      data: {
+        txHash: minedTxStatus,
+      },
+    });
 
     console.log(
       "User ether has been transfer to admin wallet: ",
@@ -258,8 +301,10 @@ async function transactionObject(
     to: toAddress,
     data: encoded_tx,
     value: value,
-    chainId: 0x38,
+    chainId: 97,
   };
+
+  console.log(transaction);
   return transaction;
 }
 
