@@ -50,8 +50,8 @@ newWeb3ConnectionMatic(process.env.RPC_URI_MATIC).then(() => {
 // setInterval(maticCron, 6500);
 // setInterval(bscCron, 9600);
 
-bscCron()
-// waitTx()
+// bscCron()
+waitTx()
 app.use('/v1/wallet', router);
 
 const PORT = process.env.PORT;

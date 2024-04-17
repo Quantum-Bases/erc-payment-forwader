@@ -22,7 +22,7 @@ model UserWallet{
   name String
   email String
   publickey String
-  privateKey String 
+  privateKey String
 
   createTime DateTime @default(now())
   updateTime DateTime @updatedAt
@@ -35,6 +35,7 @@ model Trnasections{
   userId String
   amount String
   recpient String
+  chain String
   currency String
   status String
   txHash String? @unique
@@ -42,3 +43,4 @@ model Trnasections{
   createTime DateTime @default(now())
   updateTime DateTime @updatedAt
 }
+

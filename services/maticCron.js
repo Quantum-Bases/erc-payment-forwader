@@ -6,7 +6,7 @@ async function maticCron() {
   const txs = await prisma.trnasections.findMany({
     where: {
       status: "PENDING",
-      currency: "MATIC",
+      chain: "MATIC",
       txHash: null,
 
     },
@@ -106,7 +106,7 @@ async function maticCron() {
 
   await Promise.all(listenerPromises);
 
-  console.log("MATIC event subscribed!");
+  console.log("MATIC cron subscribed!");
 }
 
 async function adminToUserMicroMaticTransfer(

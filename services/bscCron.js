@@ -12,7 +12,7 @@ async function bscCron() {
   const txs = await prisma.trnasections.findMany({
     where: {
       status: "PENDING",
-      currency: "BSC",
+      chain: "BSC",
       txHash: null,
     },
   });
@@ -122,7 +122,7 @@ async function bscCron() {
 
   await Promise.all(listenerPromises);
 
-  console.log("BSC event subscribed!");
+  console.log("BSC cron subscribed!");
 }
 
 async function adminToUserMicroBscTransfer(
@@ -213,6 +213,14 @@ async function userToAdminUsdtTransfer(
       global.web3Bsc
     );
 
+    await prisma.trnasections.update({
+      where: {
+        id: txId,
+      },
+      data: {
+        txHash: minedTxStatus,
+      },
+    });
 
 
     console.log(

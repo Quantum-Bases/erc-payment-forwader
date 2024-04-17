@@ -24,6 +24,7 @@ CREATE TABLE "Trnasections" (
     "userId" TEXT NOT NULL,
     "amount" TEXT NOT NULL,
     "recpient" TEXT NOT NULL,
+    "chain" TEXT NOT NULL,
     "currency" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "txHash" TEXT,

@@ -21,22 +21,6 @@ const prisma = new PrismaClient()
 //         }
 //     })
 // };
-// const newWeb3ConnectionBsc = async (WS_URI) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             web3.setProvider(
-//                 new web3.providers.HttpsProvider(
-//                     WS_URI
-//                 )
-//             );
-//             global.web3Bsc = web3;
-//             resolve();
-
-//         } catch (e) {
-//             console.log("Connection Failed !")
-//         }
-//     })
-// };
 // const getWeb3ConnectionBsc = () => global.web3Bsc;
 
 

@@ -443,7 +443,7 @@ const usdtAbi = [
 
 const USDT_TOKEN_ADDRESS = {
     polygon:"0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-    bsc:"0x55d398326f99059ff775485246999027b3197955"
+    bsc:"0xa95C517169751A434D5C3b6111404E0c18775eFE"
 }
 
 module.exports = {

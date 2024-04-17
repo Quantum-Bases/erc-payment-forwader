@@ -1,4 +1,6 @@
 const config = require('../config')
+const { prisma } = require("../connection");
+
 
 const getEtherBalance = async (address, network) => {
     try {
@@ -107,14 +109,14 @@ const pushTransaction = async (transactionObject, privateKey, network) => {
     } catch (e) { return e.message }
 }
 
-async function waitForTx(tx_hash, network) {
+const waitForTx = async (tx_hash, network) => {
     var result = null;
 
     // This is not really efficient but nodejs cannot pause the running process
     while (result === null) {
-        result = await network.eth.getTransaction(tx_hash);
-        console.log("result",result);
+        result = await network.eth.getTransaction(tx_hash);        
     }
+
     return result
 }
 
@@ -126,5 +128,6 @@ module.exports = {
     getEstimatedGas,
     pushTransaction,
     getNounce,
-    privateKeyToAddress
+    privateKeyToAddress,
+    waitForTx
 }
