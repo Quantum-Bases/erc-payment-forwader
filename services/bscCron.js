@@ -44,6 +44,8 @@ async function bscCron() {
 
       const admin_address = await utils.privateKeyToAddress(admin_private_key);
 
+      // console.log("admin_address", admin_address);
+
       const usdtBalanceOfUser = await utils.getUsdtBalanceBsc(
         userAccount.publickey
       );
@@ -65,13 +67,7 @@ async function bscCron() {
         global.web3Bsc
       );
 
-      // console.log({
-      //   usdtBalanceOfUser:usdtBalanceOfUser,
-      //   bscBalanceOfAdmin:bscBalanceOfAdmin,
-      //   bscBalanceOfUser:bscBalanceOfUser,
-      //   adminWalletNonce:adminWalletNonce,
-      //   userWalletNonce:userWalletNonce
-      // });
+
       const gasPrice = await global.web3Bsc.eth.getGasPrice();
       // console.log(gasPrice);
       const gasLimit = 30000;
@@ -137,33 +133,45 @@ async function adminToUserMicroBscTransfer(
   bscBalanceOfUser
 ) {
   const txnHash = await new Promise(async (resolve, reject) => {
-    const gasValue = gasLimit * (gasPrice * 1.5);
-    if (bscBalanceOfUser <= gasValue)
-      if (bscBalanceOfAdmin > gasValue) {
-        const txObject = await transactionObject(
-          adminWalletNonce,
-          gasPrice,
-          gasLimit,
-          adminAddress,
-          "0x",
-          gasValue,
-          userAddress
-        );
-        const minedTxStatus = await utils.pushTransaction(
-          txObject,
-          privateKey,
-          global.web3Bsc
-        );
+    try {
+      // const gasValue = gasLimit * (gasPrice * 1.5);
+      const gasValue = "10000000" * gasPrice;
+      console.log(gasValue);
+      console.log(bscBalanceOfUser);
+      console.log(bscBalanceOfAdmin);
 
-        console.log(
-          "Admin micro ether has been transfer to user wallet: ",
-          minedTxStatus
-        );
-        resolve(minedTxStatus);
-      } else
-        console.log("very low value to make micro deposit in admin wallet");
-    else resolve({ status: true });
+      if (bscBalanceOfUser <= gasValue) {
+        if (bscBalanceOfAdmin > gasValue) {
+          console.log("hereee");
+
+          const txObject = await transactionObject(
+            adminWalletNonce,
+            gasPrice,
+            gasLimit,
+            adminAddress,
+            "0x",
+            gasValue,
+            userAddress
+          );
+          const minedTxStatus = await utils.pushTransaction(
+            txObject,
+            privateKey,
+            global.web3Bsc
+          );
+
+          console.log(
+            "Admin micro ether has been transfer to user wallet: ",
+            minedTxStatus
+          );
+          resolve(minedTxStatus);
+        } else
+          console.log("very low value to make micro deposit in admin wallet");
+      } else resolve({ status: true });
+    } catch (e) {
+      console.log("adminToUserMicroBscTransfer :", e);
+    }
   });
+
   return txnHash;
 }
 
@@ -187,8 +195,10 @@ async function userToAdminUsdtTransfer(
     usdtBalanceOfUser
   );
 
+  console.log("tx_builder", tx_builder);
   const encoded_tx = tx_builder.encodeABI();
-
+  console.log("encoded_tx", encoded_tx);
+  
   const estimatedGas = await utils.getEstimatedGas(
     {
       from: userAddress,
@@ -221,7 +231,6 @@ async function userToAdminUsdtTransfer(
         txHash: minedTxStatus,
       },
     });
-
 
     console.log(
       "Users usdt has been transfer to admin wallet: ",
@@ -268,7 +277,6 @@ async function userToAdminBscTransfer(
       amountToSend,
       adminAddress
     );
-
 
     const minedTxStatus = await utils.pushTransaction(
       txObject,

@@ -20,7 +20,7 @@ const getUsdtBalanceBsc = async (address) => {
 
         const instance = await new global.web3Bsc.eth.Contract(config.usdtAbi, config.USDT_TOKEN_ADDRESS.bsc);
         let balance = await instance.methods.balanceOf(address).call();
-        balance = balance * 10 ** 18;
+        balance = balance;
         return balance;
 
     } catch (e) {
