@@ -7,3 +7,4 @@ package-lock.json
 yarn.lock
 test.js
 test1.js
+config.bat
